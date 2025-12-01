@@ -10,7 +10,7 @@
     "dotenv": "^16.4.5"
   },
   "scripts": {
-    "start": "node publisher.js",
+    "start": "node server.js",
     "run:local": "node start.js"
   }
 }
