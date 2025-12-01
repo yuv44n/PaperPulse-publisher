@@ -7,9 +7,10 @@
     "@supabase/supabase-js": "^2.39.3",
     "node-fetch": "^2.6.7",
     "xml2js": "^0.6.2",
-    "dotenv": "^16.3.1"
+    "dotenv": "^16.4.5"
   },
   "scripts": {
-    "start": "node publisher.js"
+    "start": "node publisher.js",
+    "run:local": "node start.js"
   }
 }
