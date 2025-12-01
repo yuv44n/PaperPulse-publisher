@@ -59,6 +59,19 @@ exports.runPublisher = async (req, res) => {
         for (const entry of entries) {
             const arxiv_id = entry.id.replace('http://arxiv.org/abs/', '').replace('https://arxiv.org/abs/', '');
             if (!entry.summary || !entry.title) continue; 
+            const { count, error: countError } = await supabase
+                .from('papers')
+                .select('arxiv_id', { count: 'exact' })
+                .eq('arxiv_id', arxiv_id);
+            if (countError) {
+                console.error(`Database error checking paper ${arxiv_id}:`, countError.message);
+                continue;
+            }
+            if (count > 0) {
+                skippedCount++;
+                console.log(`[Skip] Paper ${arxiv_id} already exists in DB. Skipping AI call.`);
+                continue; 
+            }
             try {
                 const abstract = entry.summary._ || entry.summary;
                 const aiResult = await summarizeAndTag(abstract, OPENROUTER_API_KEY); 
@@ -80,28 +93,22 @@ exports.runPublisher = async (req, res) => {
                     })
                     .select('arxiv_id');
                 if (error) {
-                    if (error.code === '23505') { 
-                        console.log(`Paper ${arxiv_id} already published (deduplicated).`);
-                    } else {
-                        console.error(`Error writing paper ${arxiv_id}:`, error.message);
-                    }
+                    console.error(`Error writing paper ${arxiv_id}:`, error.message);
+                } else if (status === 201) { 
+                    newPapersCount++;
+                    console.log(`Published NEW paper: ${arxiv_id}`);
+                } else if (status === 200) {
+                    console.warn(`Paper ${arxiv_id} updated unexpectedly after existence check.`);
+                    skippedCount++;
                 } else {
-                    if (status === 201) { 
-                        newPapersCount++;
-                        console.log(`Published NEW paper: ${arxiv_id}`);
-                    } else if (status === 200) {
-                        skippedCount++;
-                        console.log(`Paper ${arxiv_id} skipped (already published).`);
-                    } else {
-                         console.log(`Paper ${arxiv_id} handled with unexpected status ${status}.`);
-                    }
+                    console.log(`Paper ${arxiv_id} handled with unexpected status ${status}.`);
                 }
             } catch (processingError) {
                 console.error(`Skipping paper ${arxiv_id} due to AI processing error:`, processingError.message);
             }
         }
-        console.log(`--- Publishing finished. Total papers processed: ${entries.length}. New papers: ${newPapersCount}, Skipped/Updated: ${skippedCount} ---`);
-        return res.status(200).send(`Publisher ran successfully. New papers: ${newPapersCount}, Skipped/Updated: ${skippedCount}`);
+        console.log(`--- Publishing finished. Total papers processed: ${entries.length}. New papers: ${newPapersCount}, Skipped: ${skippedCount} ---`);
+        return res.status(200).send(`Publisher ran successfully. New papers: ${newPapersCount}, Skipped: ${skippedCount}`);
     } catch (error) {
         console.error('Critical Publisher Error:', error);
         return res.status(500).send(`Publisher failed: ${error.message}`);
