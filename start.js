@@ -1,6 +1,13 @@
 require('dotenv').config();
+
 const publisherModule = require('./publisher');
-const mockReq = {};
+
+const mockReq = { 
+    headers: {
+        
+    }
+};
+
 const mockRes = {
     status: (code) => {
         console.log(`\n[Local Runner] HTTP Status: ${code}`);
