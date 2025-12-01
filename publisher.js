@@ -60,6 +60,15 @@
     }
 
     exports.runPublisher = async (req, res) => {
+        // --- START SECURITY CHECK ---
+        const expectedSecret = process.env.CRON_SECRET;
+        const incomingSecret = req.headers['x-cron-secret']; // Matches the header sent by curl
+        
+        if (!expectedSecret || incomingSecret !== expectedSecret) {
+            console.warn('Unauthorized access attempt to publisher job.');
+            return res.status(403).send('Forbidden: Invalid cron secret.');
+        }
+        // --- END SECURITY CHECK ---
         console.log('--- Starting Scheduled Supabase Publisher ---');
         try {
             const xmlResponse = await fetch(ARXIV_URL);
