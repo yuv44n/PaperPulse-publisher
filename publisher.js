@@ -4,6 +4,7 @@ const fetch = require('node-fetch');
 const SUPABASE_URL = process.env.SUPABASE_URL;
 const SUPABASE_SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY; 
 const OPENROUTER_API_KEY = process.env.OPENROUTER_API_KEY;
+const CRON_SECRET = process.env.CRON_SECRET;
 const MAX_RESULTS = 25; 
 const ARXIV_URL = 'https://export.arxiv.org/api/query?search_query=cat:cs.AI&sortBy=submittedDate&sortOrder=descending&max_results=' + MAX_RESULTS;
 const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
@@ -48,6 +49,13 @@ async function summarizeAndTag(text, apiKey) {
     }
 }
 exports.runPublisher = async (req, res) => {
+    const expectedSecret = CRON_SECRET;
+    const headers = req?.headers || {};
+    const incomingSecret = headers['x-cron-secret']; 
+    if (expectedSecret && incomingSecret !== expectedSecret) {
+        console.warn('Unauthorized access attempt to publisher job. Returning 403.');
+        return res.status(403).send('Forbidden: Invalid cron secret.');
+    }
     console.log('--- Starting Scheduled Supabase Publisher ---');
     try {
         const xmlResponse = await fetch(ARXIV_URL);
