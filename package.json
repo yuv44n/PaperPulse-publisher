@@ -2,7 +2,7 @@
   "name": "paperpulse-supabase-publisher",
   "version": "1.0.0",
   "description": "Scheduled job to fetch, summarize, and publish papers to Supabase.",
-  "main": "publisher.js",
+  "main": "server.js",
   "dependencies": {
     "@supabase/supabase-js": "^2.39.3",
     "node-fetch": "^2.6.7",
