@@ -1,17 +1,12 @@
-# This workflow runs your Publisher service on a schedule via HTTP request.
-
 name: PaperPulse Publisher Cron
 
 on:
   schedule:
-    # Runs every 30 minutes (This uses standard cron syntax)
     - cron: '*/30 * * * *'
   
   workflow_dispatch:
-    # Allows manual trigger from the GitHub Actions UI for testing
 
 env:
-  # 1. Replace with your actual public Railway domain
   RAILWAY_URL: https://paperpulse-publisher-production.up.railway.app 
 
 jobs:
@@ -20,13 +15,11 @@ jobs:
     steps:
       - name: Trigger PaperPulse Publisher Job
         run: |
-          # Use curl to send a POST request to your deployed function.
-          # The -s flag silences the progress bar.
-          # The -S flag shows the error if the request fails.
+          # The curl command sends a POST request with the required secret header 
+          # (X-CRON-SECRET) to execute the runPublisher function on Railway.
           curl -sS -X POST \
             -H "Content-Type: application/json" \
             -H "X-CRON-SECRET: ${{ secrets.CRON_SECRET }}" \
             "${{ env.RAILWAY_URL }}"
         env:
-          # 2. Store the secret token in GitHub Repository Secrets.
           CRON_SECRET: ${{ secrets.CRON_SECRET }}
