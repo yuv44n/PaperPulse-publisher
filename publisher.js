@@ -1,12 +1,25 @@
+/**
+ * PaperPulse Supabase Publisher (Node.js Serverless Function)
+ * * This script runs periodically (e.g., via a Cron Job) to:
+ * 1. Fetch the latest papers from the ArXiv API (using HTTPS).
+ * 2. Call the AI model (OpenRouter) to generate a summary and tags for each paper.
+ * 3. Write the processed data to the Supabase 'papers' table using 'upsert'.
+ * 4. ALERTS: Uses Discord Webhook for error notifications.
+ */
+
 const { createClient } = require('@supabase/supabase-js');
 const parser = require('xml2js').parseStringPromise;
 const fetch = require('node-fetch');
+
+// Environment Variables
 const SUPABASE_URL = process.env.SUPABASE_URL;
 const SUPABASE_SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY; 
 const OPENROUTER_API_KEY = process.env.OPENROUTER_API_KEY;
 const CRON_SECRET = process.env.CRON_SECRET;
+const OPENROUTER_MODEL = process.env.OPENROUTER_MODEL;
 const DISCORD_WEBHOOK_URL = process.env.DISCORD_WEBHOOK_URL;
 
+const MAX_RESULTS = 50; 
 const ARXIV_URL = 'https://export.arxiv.org/api/query?search_query=cat:cs.AI&sortBy=submittedDate&sortOrder=descending&max_results=' + MAX_RESULTS;
 
 const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
