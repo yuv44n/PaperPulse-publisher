@@ -15,7 +15,7 @@ async function summarizeAndTag(text, apiKey) {
     const openRouterUrl = 'https://openrouter.ai/api/v1/chat/completions';
     const prompt = `Summarize the following research paper abstract in 65 words. Also extract up to 3 relevant keywords as tags. Return JSON with keys: summary, tags (as a list of strings).\n\n${text}`;
     const payload = {
-        "model": "x-ai/grok-4.1-fast:free",
+        "model": "mistralai/devstral-2512:free",
         "messages": [
             {"role": "user", "content": prompt}
         ],
