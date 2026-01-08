@@ -112,14 +112,30 @@ exports.runPublisher = async (req, res) => {
     
     try {
         const xmlResponse = await fetch(ARXIV_URL);
+        
+        // FIX: Check for HTTP errors from ArXiv before parsing
+        if (!xmlResponse.ok) {
+            throw new Error(`ArXiv API returned status: ${xmlResponse.status} ${xmlResponse.statusText}`);
+        }
+
         const xmlText = await xmlResponse.text();
+
+        // FIX: Validate XML content before parsing
+        if (xmlText.trim().startsWith('Rate limit') || !xmlText.trim().startsWith('<')) {
+             throw new Error(`ArXiv API returned invalid XML (Likely Rate Limit): "${xmlText.substring(0, 100)}..."`);
+        }
+
         const result = await parser(xmlText, { explicitArray: false });
-        const entries = result.feed.entry || [];
+        
+        const entries = result.feed?.entry || [];
+        const entriesArray = Array.isArray(entries) ? entries : [entries];
 
         let newPapersCount = 0;
         let skippedCount = 0;
         
-        for (const entry of entries) {
+        for (const entry of entriesArray) {
+            if (!entry || !entry.id) continue;
+
             const arxiv_id = entry.id.replace(/https?:\/\/arxiv\.org\/abs\//, '');
             
             if (!entry.summary || !entry.title) continue; 
@@ -174,7 +190,7 @@ exports.runPublisher = async (req, res) => {
             }
         }
 
-        const summaryMsg = `--- Finished. Processed: ${entries.length}. New: ${newPapersCount}. Skipped: ${skippedCount}. Model: ${OPENROUTER_MODEL} ---`;
+        const summaryMsg = `--- Finished. Processed: ${entriesArray.length}. New: ${newPapersCount}. Skipped: ${skippedCount}. Model: ${OPENROUTER_MODEL} ---`;
         console.log(summaryMsg);
         return res.status(200).send(summaryMsg);
 
