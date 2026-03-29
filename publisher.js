@@ -79,10 +79,13 @@ async function summarizeAndTag(text, apiKey) {
     }
 
     const data = await response.json();
-    const content = data.choices[0].message.content;
-    
+    const content = data.choices[0]?.message?.content;
+    if (!content) {
+        console.warn('Skipping: content is null or undefined');
+        return null;
+    }
+    console.log('AI raw output:', content);
     const jsonMatch = content.match(/\{[\s\S]*\}/);
-    
     if (jsonMatch) {
         const jsonMap = JSON.parse(jsonMatch[0]);
         return {
