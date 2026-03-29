@@ -45,7 +45,7 @@ async function summarizeAndTag(text, apiKey) {
     if (!apiKey) throw new Error("OPENROUTER_API_KEY is not set.");
 
     const openRouterUrl = 'https://openrouter.ai/api/v1/chat/completions';
-    const prompt = `Summarize the following research paper abstract in 65 words. Also extract up to 3 relevant keywords as tags. Return JSON with keys: summary, tags (as a list of strings).\n\n${text}`;
+    const prompt = `Summarize the following research paper abstract in 65 words. Also extract up to 3 relevant keywords as tags. Return your response as valid JSON in the following format (replace the example values with your output):\n\n{\n  \"summary\": \"<summary text>\",\n  \"tags\": [\"tag1\", \"tag2\", \"tag3\"]\n}\n\nAbstract:\n${text}`;
 
     const payload = {
         "model": OPENROUTER_MODEL,
@@ -86,18 +86,25 @@ async function summarizeAndTag(text, apiKey) {
     }
     console.log('AI raw output:', content);
     const jsonMatch = content.match(/\{[\s\S]*\}/);
-    if (jsonMatch) {
-        const jsonMap = JSON.parse(jsonMatch[0]);
-        return {
-            summary: jsonMap.summary || '',
-            tags: (jsonMap.tags || []).map(t => t.toString()),
-        };
-    } else {
-        const parseError = `Failed to parse valid JSON response from AI model: ${OPENROUTER_MODEL}`;
-        console.error(parseError);
-        await sendDiscordAlert(parseError); 
-        throw new Error(parseError);
+    if (!jsonMatch) {
+        console.warn('AI output did not contain valid JSON. Raw output:', content);
+        return null;
     }
+    let jsonMap = null;
+    try {
+        jsonMap = JSON.parse(jsonMatch[0]);
+    } catch (e) {
+        console.warn('Failed to parse JSON from AI output. Raw output:', content);
+        return null;
+    }
+    if (!jsonMap || typeof jsonMap !== 'object') {
+        console.warn('Parsed JSON is null or not an object. Raw output:', content);
+        return null;
+    }
+    return {
+        summary: jsonMap.summary || '',
+        tags: Array.isArray(jsonMap.tags) ? jsonMap.tags.map(t => t.toString()) : [],
+    };
 }
 
 
