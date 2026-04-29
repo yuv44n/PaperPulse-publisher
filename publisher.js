@@ -45,7 +45,18 @@ async function summarizeAndTag(text, apiKey) {
     if (!apiKey) throw new Error("OPENROUTER_API_KEY is not set.");
 
     const openRouterUrl = 'https://openrouter.ai/api/v1/chat/completions';
-    const prompt = `Summarize the following research paper abstract in 65 words. Also extract up to 3 relevant keywords as tags. Return your response as valid JSON in the following format (replace the example values with your output):\n\n{\n  \"summary\": \"<summary text>\",\n  \"tags\": [\"tag1\", \"tag2\", \"tag3\"]\n}\n\nAbstract:\n${text}`;
+    // Replace the prompt line in summarizeAndTag with this:
+    const prompt = `Task: Summarize abstract in ~65 words and extract 3 tags.
+    Constraint: Return ONLY valid JSON. No preamble, no word counts, no thinking.
+
+    Output Schema:
+    {
+    "summary": "string (65 words)",
+    "tags": ["string", "string", "string"]
+    }
+
+    Abstract to process:
+    ${text}`;
 
     const payload = {
         "model": OPENROUTER_MODEL,
