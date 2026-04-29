@@ -179,6 +179,7 @@ exports.runPublisher = async (req, res) => {
             
             try {
                 const abstract = entry.summary._ || entry.summary;
+                await sleep(4000);
                 const aiResult = await summarizeAndTag(abstract, OPENROUTER_API_KEY); 
 
                 const paperData = {
