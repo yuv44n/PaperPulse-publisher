@@ -4,7 +4,7 @@ const publisherModule = require('./publisher');
 
 const mockReq = { 
     headers: {
-        
+        'x-cron-secret': process.env.CRON_SECRET
     }
 };
 

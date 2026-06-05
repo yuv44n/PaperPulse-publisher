@@ -24,6 +24,8 @@ const ARXIV_URL = 'https://export.arxiv.org/api/query?search_query=cat:cs.AI&sor
 
 const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
 
+const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+
 /* Helper to send alerts to Discord*/
 async function sendDiscordAlert(message) {
     if (!DISCORD_WEBHOOK_URL) return;
