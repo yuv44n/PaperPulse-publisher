@@ -5,7 +5,7 @@
 
 ## Go to main repository: **[github.com/yuv44n/PaperPulse](https://github.com/yuv44n/PaperPulse)**
 
-### Role: Runs a scheduled job every 30 minutes to fetch new arXiv papers, summarize them using AI, and save them to Supabase.
+### Role: Runs a scheduled job every 6 hours to fetch new arXiv papers, summarize them using AI, and save them to Supabase.
 
 ## Steps to Deploy Your Own Backend:
 
@@ -15,8 +15,8 @@
   
 - Deploy to Railway: Connect the repo to Railway.
 
-- Configure Variables: Add OPENROUTER_API_KEY, SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, and CRON_SECRET in Railway.
+- Configure Variables: Add MISTRAL_API, MISTRAL_MODEL (optional), SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, and CRON_SECRET in Railway.
 
 - Configure Alerts (Recommended): Add a DISCORD_WEBHOOK_URL variable in Railway to receive instant notifications if the publisher fails.
 
-- Set up Scheduler: Use GitHub Actions (included in the repo) to trigger the Railway service every 30 minutes.
+- Set up Scheduler: Use GitHub Actions (included in the repo) to trigger the Railway service every 6 hours.
